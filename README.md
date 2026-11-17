@@ -12,9 +12,25 @@
 | מתקן חולצה Pro (לבן) – Compact / Regular / Wide | `jersey_hanger_pro_<size>_onepiece` או `jersey_hanger_pro_block` + `<size>_arm_left/right` | 300 / 350 / 400 |
 | מסילת צעיף | `scarf_track` | 170 |
 | מתקן כדור (מידה 5) | `ball_mount` | 118 |
-| תושבת קיר – משותפת לכולם | `wall_cleat` | 20×29×5 |
+| תושבת קיר להברגה – משותפת לכולם | `wall_cleat` | 20×29×5 |
+| פלטת הדבקה (חולצות וצעיפים) | `adhesive_plate` | 50×69 |
+| פלטת הדבקה לכדור | `adhesive_plate_ball` | 60×119 |
 
 קובצי `step/` זהים, לעריכה בתוכנת CAD.
+
+## דוגמאות
+
+![jersey](models/previews/scene_jersey_hanger.png)
+![pro](models/previews/scene_jersey_hanger_pro.png)
+![scarf](models/previews/scene_scarf_track.png)
+![ball](models/previews/scene_ball_mount.png)
+
+## שתי אפשרויות חיבור לקיר
+
+![mounting](models/previews/scene_mounting.png)
+
+- **קדיחה:** `wall_cleat` עם שני ברגים 4 מ"מ.
+- **הדבקה בלבד:** `adhesive_plate` – פלטה שטוחה עם אותה תושבת. מדביקים על כל הגב סרט דו־צדדי חזק (3M VHB 5952 או דומה) או דבק הרכבה. לנקות את הקיר באלכוהול, ללחוץ 30 שניות, ולחכות 24 שעות לפני תלייה. מתאים לקיר חלק וצבוע היטב; לא לטיח מתפורר או טפט. בפלטה יש גם חורי ברגים, אז אפשר לשלב.
 
 ## הרכבה
 
@@ -38,4 +54,5 @@
 pip install cadquery matplotlib
 python3 models/build.py     # STL + STEP
 python3 models/render.py    # תמונות תצוגה
+python3 models/scenes.py    # סצנות עם חולצה / צעיף / כדור (דורש libosmesa6)
 ```

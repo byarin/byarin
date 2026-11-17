@@ -49,6 +49,25 @@ def wall_cleat():
     return c
 
 
+def adhesive_plate(w=50.0, below=20.0, above=20.0, t=2.5):
+    """Stick-on wall plate (double-sided VHB tape / mounting adhesive) carrying
+    the same dovetail cleat. Also has the screw holes, so it can be drilled.
+    Origin matches wall_cleat(); the wall is at Y=-t."""
+    plate = (box(-w / 2, w / 2, -t, 0, -below, CLEAT_H + above)
+             .edges("|Y").fillet(6))
+    body = plate.union(_trapezoid(CLEAT_W_WALL, CLEAT_W_FRONT, CLEAT_T, CLEAT_H)
+                       .faces(">Z").chamfer(1.2))
+    for z in (CLEAT_H / 2 - 8, CLEAT_H / 2 + 8):
+        hole = cq.Solid.makeCylinder(SCREW_D / 2, CLEAT_T + t + 2,
+                                     cq.Vector(0, -t - 1, z), cq.Vector(0, 1, 0))
+        depth = (SCREW_HEAD_D - SCREW_D) / 2
+        sink = cq.Solid.makeCone(SCREW_D / 2, SCREW_HEAD_D / 2, depth,
+                                 cq.Vector(0, CLEAT_T - depth, z),
+                                 cq.Vector(0, 1, 0))
+        body = body.cut(hole).cut(sink)
+    return body
+
+
 def cut_slot(body, z_bottom):
     """Cut the cleat slot into a body's back face, open at z_bottom."""
     slot = _trapezoid(CLEAT_W_WALL + 2 * FIT, CLEAT_W_FRONT + 2 * FIT,
@@ -185,7 +204,12 @@ def ball_mount(ball_d=220.0, seat_r=51.0):
 
 # ----------------------------------------------------------------------- build
 def all_parts():
-    parts = {"wall_cleat": wall_cleat()}
+    parts = {"wall_cleat": wall_cleat(),
+             # 50 x 69 mm pad: jerseys and scarves
+             "adhesive_plate": adhesive_plate(),
+             # 60 x 119 mm pad, extra height above the cleat to resist the
+             # ball's forward lever arm
+             "adhesive_plate_ball": adhesive_plate(w=60, below=20, above=70)}
     parts.update(jersey_hanger(split=False))
     parts.update(jersey_hanger(split=True))
     for w in PRO_SIZES.values():
