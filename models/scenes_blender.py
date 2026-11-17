@@ -276,7 +276,7 @@ def make_jersey(y_mid, lift, puff, tex_path, body_rgb, step=6.0):
             cap = 7.0 + (puff - 7.0) * min(1.0, max(0.0, (z + 220.0) / 170.0))
             h = 0.0 if seam[g] else min(cap, 0.42 * panel["dseam"][g] + 1.0)
             if sign < 0:
-                h = min(h, 16.0)          # stay clear of the wall
+                h = min(h, y_mid - 3.5)   # stay clear of the wall
             index[p][g] = len(verts)
             verts.append((x * S, (y_mid + sign * h) * S, (z + lift) * S))
             uvs.append(((J_X1 - x) / (J_X1 - J_X0), (z - J_Z0) / (J_Z1 - J_Z0)))
@@ -307,7 +307,7 @@ def simulate_cloth(cloth, colliders, frames=70):
     sc = bpy.context.scene
     for c in colliders:
         c.modifiers.new("col", "COLLISION")
-        c.collision.thickness_outer = 0.003
+        c.collision.thickness_outer = 0.001
         c.collision.thickness_inner = 0.002
         c.collision.cloth_friction = 25
     mod = cloth.modifiers.new("cloth", "CLOTH")
@@ -322,7 +322,7 @@ def simulate_cloth(cloth, colliders, frames=70):
     st.air_damping = 2.5
     cs = mod.collision_settings
     cs.use_collision = True
-    cs.distance_min = 0.0025
+    cs.distance_min = 0.0015
     cs.collision_quality = 4
     cs.use_self_collision = True
     cs.self_distance_min = 0.0025
@@ -388,6 +388,11 @@ def make_scarf(width=184.0, front_len=660.0, back_len=600.0):
                                            bump_scale=1400, bump_strength=0.6))
     sub = o.modifiers.new("sub", "SUBSURF")
     sub.levels = sub.render_levels = 1
+    tex = bpy.data.textures.new("drape", "CLOUDS")
+    tex.noise_scale = 0.12
+    dis = o.modifiers.new("drape", "DISPLACE")
+    dis.texture, dis.strength, dis.direction = tex, 0.012, "Y"
+    dis.texture_coords = "GLOBAL"
     sol = o.modifiers.new("thick", "SOLIDIFY")
     sol.thickness = 0.004
     sol.offset = 0
@@ -488,7 +493,7 @@ def scene_jersey(name, part, color, body, trim, label, number, y_mid, puff):
     trim255 = tuple(int(255 * c ** (1 / 2.2)) for c in trim)
     jersey_texture(tex, rgb255, trim255, label, number)
     j = make_jersey(y_mid, lift=14.0, puff=puff, tex_path=tex, body_rgb=body,
-                    step=float(__import__("os").environ.get("STEP", 6)))
+                    step=float(__import__("os").environ.get("STEP", 8)))
     simulate_cloth(j, [w, m])
     lights((0, 0, -0.3))
     camera(*cam_item, lens=70)
