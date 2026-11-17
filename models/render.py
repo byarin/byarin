@@ -51,7 +51,7 @@ render("jersey_hanger_back",
        [(build.jersey_hanger()["jersey_hanger_onepiece"], BLACK)], azim=118, elev=-15)
 split = build.jersey_hanger(split=True)
 render("jersey_hanger_split_exploded",
-       [(split["jersey_hanger_block"], BLACK),
+       [(split["hanger_block"], BLACK),
         (split["jersey_hanger_arm_right"].translate((25, 0, 0)), BLACK),
         (split["jersey_hanger_arm_left"].translate((-25, 0, 0)), BLACK)])
 for size, w in build.PRO_SIZES.items():
@@ -61,3 +61,10 @@ render("scarf_track", [(build.scarf_track()["scarf_track"], BLACK)])
 render("scarf_track_top", [(build.scarf_track()["scarf_track"], BLACK)], elev=60, azim=-80)
 render("ball_mount", [(build.ball_mount()["ball_mount"], BLACK)], elev=35)
 render("ball_mount_below", [(build.ball_mount()["ball_mount"], BLACK)], elev=-25, azim=-120)
+pro = build.jersey_hanger_pro(350.0, split=True)
+render("jersey_hanger_pro_split_exploded",
+       [(pro["hanger_block"], WHITE),
+        (pro["jersey_hanger_pro_regular_arm_right"].translate((25, 0, 0)), WHITE),
+        (pro["jersey_hanger_pro_regular_arm_left"].translate((-25, 0, 0)), WHITE)])
+render("snap_joint", [(build.snap_tongue(), GREY)], elev=25, azim=-110)
+render("adhesive_plate", [(build.adhesive_plate(), GREY)], azim=-50)

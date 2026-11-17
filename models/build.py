@@ -79,40 +79,81 @@ def mirror_x(obj):
     return obj.mirror("YZ")
 
 
+# ------------------------------------------------- shared hanger block + joint
+# One centre block serves the basic hanger and every Pro size. Arms click in
+# from the sides with a forked snap tongue (no glue), so a hanger ships flat.
+BLOCK_D = 40.0        # block depth = stand-off from the wall
+BLOCK_HW = 15.0       # block half width
+BLOCK_Z0, BLOCK_Z1 = -22.0, 12.0
+TONGUE_LEN = 12.0     # how far the tongue reaches into the block
+TONGUE_HZ = 5.0       # tongue half height
+TONGUE_Y0, TONGUE_Y1 = BLOCK_D - 7.0, BLOCK_D - 2.0
+PRONG_T = 2.5         # thickness of each flexing prong
+BARB = 0.7            # barb height
+
+
+def prism_xz(pts, y0, y1):
+    """Extrude an (x, z) polygon from y0 to y1."""
+    return (cq.Workplane("XY").polyline(pts).close().extrude(y1 - y0)
+            .rotate((0, 0, 0), (1, 0, 0), 90).translate((0, y1, 0)))
+
+
+def snap_tongue():
+    """Forked tongue for the right-hand arm (mirror for the left)."""
+    x_tip, x_root = BLOCK_HW - TONGUE_LEN, BLOCK_HW + 1
+    t = box(x_tip, x_root, TONGUE_Y0, TONGUE_Y1, -TONGUE_HZ, TONGUE_HZ)
+    gap = TONGUE_HZ - PRONG_T
+    t = t.cut(box(x_tip - 1, BLOCK_HW - 1, TONGUE_Y0 - 1, TONGUE_Y1 + 1, -gap, gap))
+    for s in (1, -1):
+        z = s * TONGUE_HZ
+        barb = prism_xz([(x_tip + 0.5, z - s * 0.2), (x_tip + 3.5, z + s * BARB),
+                         (x_tip + 3.5, z - s * 0.2)], TONGUE_Y0, TONGUE_Y1)
+        t = t.union(barb)
+    return t
+
+
+def snap_pocket():
+    j = JOINT_FIT
+    x_tip = BLOCK_HW - TONGUE_LEN
+    p = box(x_tip - 0.3, BLOCK_HW + 1, TONGUE_Y0 - j, TONGUE_Y1 + j,
+            -TONGUE_HZ - j, TONGUE_HZ + j)
+    catch = box(x_tip - 0.3, x_tip + 3.5 + j, TONGUE_Y0 - j, TONGUE_Y1 + j,
+                -TONGUE_HZ - BARB - 0.1, TONGUE_HZ + BARB + 0.1)
+    return p.union(catch)
+
+
+def hanger_block(pockets=True):
+    block = box(-BLOCK_HW, BLOCK_HW, 0, BLOCK_D, BLOCK_Z0, BLOCK_Z1)
+    block = cut_slot(block.edges("|Y").fillet(3), BLOCK_Z0)
+    if pockets:
+        block = block.cut(snap_pocket()).cut(mirror_x(snap_pocket()))
+    return block
+
+
+def _assemble(name, arm, split, x_max):
+    if not split:
+        return {f"{name}_onepiece":
+                hanger_block(False).union(arm).union(mirror_x(arm))}
+    arm = arm.intersect(box(BLOCK_HW, x_max, 0, BLOCK_D, -90, 90))
+    arm = arm.union(snap_tongue())
+    return {"hanger_block": hanger_block(),
+            f"{name}_arm_right": arm,
+            f"{name}_arm_left": mirror_x(arm)}
+
+
 # ------------------------------------------------------------ 1. jersey hanger
 def jersey_hanger(width=380.0, split=False):
-    """Basic hanger: centre block with two open loop arms.
-
-    Returns dict of parts. split=True gives block + plug-in arms that fit a
-    220 mm print bed; split=False gives a single piece.
-    """
-    D, bw, t = 38.0, 15.0, 8.0          # block depth, half width, arm thickness
-    z0, z1 = -22.0, 12.0
+    """Basic hanger: shared block with two open loop arms."""
+    D, bw, t = BLOCK_D, BLOCK_HW, 8.0
     tip = width / 2
-    outline = [(bw - 3, -7), (tip - 10, -7), (tip, 2), (75, 34), (bw - 3, z1)]
-
+    outline = [(bw - 3, -7), (tip - 10, -7), (tip, 2), (75, 34),
+               (bw - 3, BLOCK_Z1)]
     wp = cq.Workplane("XY")
     outer = wp.polyline(outline).close().offset2D(-4).offset2D(4).extrude(t)
     inner = wp.polyline(outline).close().offset2D(-11).offset2D(4).extrude(t)
     arm = (outer.cut(inner)
            .rotate((0, 0, 0), (1, 0, 0), 90).translate((0, D, 0)))
-
-    block = box(-bw, bw, 0, D, z0, z1).edges("|Y").fillet(3)
-    block = cut_slot(block, z0)
-
-    if not split:
-        body = block.union(arm).union(mirror_x(arm))
-        return {"jersey_hanger_onepiece": body}
-
-    arm = arm.intersect(box(bw, tip + 1, 0, D, -50, 50))
-    tongue = box(bw - 9, bw + 1, D - 7, D - 2, -5, 5)
-    arm = arm.union(tongue)
-    j = JOINT_FIT
-    pocket = box(bw - 9 - j, bw + 1, D - 7 - j, D - 2 + j, -5 - j, 5 + j)
-    block = block.cut(pocket).cut(mirror_x(pocket))
-    return {"jersey_hanger_block": block,
-            "jersey_hanger_arm_right": arm,
-            "jersey_hanger_arm_left": mirror_x(arm)}
+    return _assemble("jersey_hanger", arm, split, tip + 1)
 
 
 # -------------------------------------------------------- 2. jersey hanger pro
@@ -120,35 +161,18 @@ PRO_SIZES = {"compact": 300.0, "regular": 350.0, "wide": 400.0}
 
 
 def jersey_hanger_pro(width=350.0, split=False):
-    """Premium hanger: T-bar with two angled shoulder pads."""
-    D, bw = 50.0, 16.0
-    z0, z1 = -24.0, 10.0
-    pad_len, pad_depth, pad_t, tilt = 96.0, 40.0, 5.0, 14.0
+    """Premium hanger: shared block, T-bar with two angled shoulder pads."""
     import math
+    D, bw = BLOCK_D, BLOCK_HW
+    pad_len, pad_depth, pad_t, tilt = 96.0, 30.0, 5.0, 14.0
     xc = width / 2 - pad_len / 2 * math.cos(math.radians(tilt))
-
-    bar = box(bw - 1, xc + 8, D - 12, D, -6, 6)
+    bar = box(bw - 1, xc + 8, D - 10, D, -6, 6)
     pad = (cq.Workplane("XY").box(pad_len, pad_depth, pad_t)
            .edges("|Z").fillet(9)
            .rotate((0, 0, 0), (0, 1, 0), tilt)
            .translate((xc, D - pad_depth / 2, 7)))
-    arm = bar.union(pad)
-
-    block = box(-bw, bw, 0, D, z0, z1).edges("|Y").fillet(3)
-    block = cut_slot(block, z0)
-
-    name = f"jersey_hanger_pro_{[k for k, v in PRO_SIZES.items() if v == width][0]}"
-    if not split:
-        return {f"{name}_onepiece": block.union(arm).union(mirror_x(arm))}
-
-    arm = arm.intersect(box(bw, width, 0, D, -80, 80))
-    arm = arm.union(box(bw - 9, bw + 1, D - 9, D - 3, -4, 4))
-    j = JOINT_FIT
-    pocket = box(bw - 9 - j, bw + 1, D - 9 - j, D - 3 + j, -4 - j, 4 + j)
-    block = block.cut(pocket).cut(mirror_x(pocket))
-    return {"jersey_hanger_pro_block": block,
-            f"{name}_arm_right": arm,
-            f"{name}_arm_left": mirror_x(arm)}
+    size = [k for k, v in PRO_SIZES.items() if v == width][0]
+    return _assemble(f"jersey_hanger_pro_{size}", bar.union(pad), split, width)
 
 
 # --------------------------------------------------------------- 3. scarf track
