@@ -82,12 +82,14 @@ def mirror_x(obj):
 # ------------------------------------------------- shared hanger block + joint
 # One centre block serves the basic hanger and every Pro size. Arms click in
 # from the sides with a forked snap tongue (no glue), so a hanger ships flat.
-BLOCK_D = 40.0        # block depth = stand-off from the wall
+BLOCK_D = 34.0        # block depth
+ARM_Y = 21.0          # mid-plane of every arm; arms are symmetric about it,
+                      # so left and right arms are the SAME part (one mould)
 BLOCK_HW = 15.0       # block half width
 BLOCK_Z0, BLOCK_Z1 = -22.0, 12.0
 TONGUE_LEN = 12.0     # how far the tongue reaches into the block
 TONGUE_HZ = 5.0       # tongue half height
-TONGUE_Y0, TONGUE_Y1 = BLOCK_D - 7.0, BLOCK_D - 2.0
+TONGUE_Y0, TONGUE_Y1 = ARM_Y - 2.5, ARM_Y + 2.5
 PRONG_T = 2.5         # thickness of each flexing prong
 BARB = 0.7            # barb height
 
@@ -134,17 +136,16 @@ def _assemble(name, arm, split, x_max):
     if not split:
         return {f"{name}_onepiece":
                 hanger_block(False).union(arm).union(mirror_x(arm))}
-    arm = arm.intersect(box(BLOCK_HW, x_max, 0, BLOCK_D, -90, 90))
+    arm = arm.intersect(box(BLOCK_HW, x_max, 0, 90, -90, 90))
     arm = arm.union(snap_tongue())
-    return {"hanger_block": hanger_block(),
-            f"{name}_arm_right": arm,
-            f"{name}_arm_left": mirror_x(arm)}
+    return {"hanger_block": hanger_block(), f"{name}_arm": arm}
 
 
 # ------------------------------------------------------------ 1. jersey hanger
 def jersey_hanger(width=380.0, split=False):
     """Basic hanger: shared block with two open loop arms."""
-    D, bw, t = BLOCK_D, BLOCK_HW, 8.0
+    bw, t = BLOCK_HW, 8.0
+    D = ARM_Y + t / 2
     tip = width / 2
     outline = [(bw - 3, -7), (tip - 10, -7), (tip, 2), (75, 34),
                (bw - 3, BLOCK_Z1)]
@@ -163,14 +164,14 @@ PRO_SIZES = {"compact": 300.0, "regular": 350.0, "wide": 400.0}
 def jersey_hanger_pro(width=350.0, split=False):
     """Premium hanger: shared block, T-bar with two angled shoulder pads."""
     import math
-    D, bw = BLOCK_D, BLOCK_HW
-    pad_len, pad_depth, pad_t, tilt = 96.0, 30.0, 5.0, 14.0
+    bw = BLOCK_HW
+    pad_len, pad_depth, pad_t, tilt = 96.0, 28.0, 5.0, 14.0
     xc = width / 2 - pad_len / 2 * math.cos(math.radians(tilt))
-    bar = box(bw - 1, xc + 8, D - 10, D, -6, 6)
+    bar = box(bw - 1, xc + 8, ARM_Y - 5, ARM_Y + 5, -6, 6)
     pad = (cq.Workplane("XY").box(pad_len, pad_depth, pad_t)
            .edges("|Z").fillet(9)
            .rotate((0, 0, 0), (0, 1, 0), tilt)
-           .translate((xc, D - pad_depth / 2, 7)))
+           .translate((xc, ARM_Y, 7)))
     size = [k for k, v in PRO_SIZES.items() if v == width][0]
     return _assemble(f"jersey_hanger_pro_{size}", bar.union(pad), split, width)
 

@@ -8,8 +8,8 @@
 
 | מוצר | קבצים (`models/stl`) | רוחב |
 |---|---|---|
-| מתקן חולצה (שחור, בסיסי) | `jersey_hanger_onepiece` או `hanger_block` + `jersey_hanger_arm_left/right` | 372 |
-| מתקן חולצה Pro (לבן) – Compact / Regular / Wide | `jersey_hanger_pro_<size>_onepiece` או `hanger_block` + `jersey_hanger_pro_<size>_arm_left/right` | 300 / 350 / 400 |
+| מתקן חולצה (שחור, בסיסי) | `jersey_hanger_onepiece` או `hanger_block` + 2× `jersey_hanger_arm` | 372 |
+| מתקן חולצה Pro (לבן) – Compact / Regular / Wide | `jersey_hanger_pro_<size>_onepiece` או `hanger_block` + 2× `jersey_hanger_pro_<size>_arm` | 300 / 350 / 400 |
 | מסילת צעיף | `scarf_track` | 170 |
 | מתקן כדור (מידה 5) | `ball_mount` | 118 |
 | תושבת קיר להברגה – משותפת לכולם | `wall_cleat` | 20×29×5 |
@@ -25,6 +25,10 @@
 ![scarf](models/previews/scene_scarf_track.png)
 ![ball](models/previews/scene_ball_mount.png)
 
+## מפרט לספק (RFQ)
+
+`models/rfq/RFQ_spec.pdf` – מסמך באנגלית לשליחה לספק לקבלת הצעת מחיר: דרישות כלליות (חומר, צבע, גימור, טולרנסים), רשימת מוצרים וחלקים, ודף שרטוט לכל חלק. קובצי ה־STEP של החלקים ב־`models/rfq/step/`. נוצר על ידי `python3 models/spec.py`.
+
 ## שתי אפשרויות חיבור לקיר
 
 ![mounting](models/previews/scene_mounting.png)
@@ -38,7 +42,7 @@
 2. מחליקים את המוצר מלמעלה על התושבת – חריץ זנב־יונה מסתיר את הברגים.
 3. בגרסה המפוצלת: הזרועות ננעצות בצידי הבלוק בקליק (לשונית מפוצלת עם שיניים, בלי דבק). החיבור קבוע – לא מיועד לפירוק.
 
-**בלוק אחד לכל המשפחה:** `hanger_block` (30×40×34) משמש גם את המתקן השחור וגם את כל מידות ה־Pro; רק הזרועות מתחלפות. כך אפשר להחזיק מלאי של בלוקים ולהרכיב לפי הזמנה, ולשלוח את המוצר שטוח.
+**בלוק אחד לכל המשפחה:** `hanger_block` (30×34×34) משמש גם את המתקן השחור וגם את כל מידות ה־Pro; רק הזרועות מתחלפות. כל זרוע סימטרית, כך שימין ושמאל הם אותו חלק. כך אפשר להחזיק מלאי של בלוקים ולהרכיב לפי הזמנה, ולשלוח את המוצר שטוח.
 
 ## הדפסה
 

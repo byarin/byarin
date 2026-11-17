@@ -275,6 +275,8 @@ def make_jersey(y_mid, lift, puff, tex_path, body_rgb, step=6.0):
             x, z = panel["pos"][g]
             cap = 7.0 + (puff - 7.0) * min(1.0, max(0.0, (z + 220.0) / 170.0))
             h = 0.0 if seam[g] else min(cap, 0.42 * panel["dseam"][g] + 1.0)
+            if sign < 0:
+                h = min(h, 16.0)          # stay clear of the wall
             index[p][g] = len(verts)
             verts.append((x * S, (y_mid + sign * h) * S, (z + lift) * S))
             uvs.append(((J_X1 - x) / (J_X1 - J_X0), (z - J_Z0) / (J_Z1 - J_Z0)))
@@ -534,12 +536,12 @@ SCENES = {
     "jersey": lambda: scene_jersey(
         "scene_jersey_hanger", build.jersey_hanger()["jersey_hanger_onepiece"],
         BLACK_PLA, (0.015, 0.16, 0.10), (0.9, 0.9, 0.86), "CAPTAIN", "10",
-        y_mid=36, puff=24),
+        y_mid=build.ARM_Y, puff=24),
     "pro": lambda: scene_jersey(
         "scene_jersey_hanger_pro",
         build.jersey_hanger_pro(350.0)["jersey_hanger_pro_regular_onepiece"],
         WHITE_PLA, (0.02, 0.04, 0.22), (0.95, 0.72, 0.10), "LEGEND", "7",
-        y_mid=25, puff=22),
+        y_mid=build.ARM_Y, puff=22),
     "scarf": scene_scarf,
     "ball": scene_ball,
     "mounting": scene_mounting,
